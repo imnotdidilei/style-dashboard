@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>✨ 我的风格仪表盘</title>
+  <style>
+    :root {
+      --pink: #f472b6;
+      --pink-light: #fce7f3;
+      --purple: #a855f7;
+      --purple-light: #f3e8ff;
+      --indigo: #6366f1;
+      --bg: #fdf4ff;
+      --card: #ffffff;
+      --text: #3b0764;
+      --text-sub: #7c3aed;
+      --text-muted: #a78bfa;
+      --border: #e9d5ff;
+      --shadow: 0 4px 24px rgba(168,85,247,0.10);
+      --shadow-hover: 0 8px 32px rgba(168,85,247,0.20);
+      --tab-active: linear-gradient(135deg, #f472b6, #a855f7);
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    /* ─── HEADER ─── */
+    .hero {
+      background: linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #6366f1 100%);
+      padding: 36px 24px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero h1 { color: #fff; font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; position: relative; }
+    .hero p  { color: rgba(255,255,255,0.85); margin-top: 8px; font-size: 0.95rem; position: relative; }
+
+    /* ─── PROFILE CARD ─── */
+    .profile-wrap {
+      max-width: 900px;
+      margin: -50px auto 0;
+      padding: 0 20px;
+    }
+    .profile-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-start;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .profile-avatar {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f472b6, #a855f7);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; flex-shrink: 0;
+    }
+    .profile-info { flex: 1; min-width: 200px; }
+    .profile-info h2 { font-size: 1.2rem; font-weight: 700; color: var(--text); }
+    .profile-info p  { font-size: 0.85rem; color: #6b7280; margin-top: 4px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .tag {
+      background: var(--pink-light); color: #be185d;
+      border-radius: 999px; padding: 4px 12px;
+      font-size: 0.78rem; font-weight: 600;
+    }
+    .tag.purple { background: var(--purple-light); color: #7c3aed; }
+    .tag.indigo { background: #e0e7ff; color: #4338ca; }
+
+    /* ─── API KEY BANNER ─── */
+    .api-banner {
+      max-width: 900px;
+      margin: 16px auto 0;
+      padding: 0 20px;
+    }
+    .api-box {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .api-box .icon { font-size: 1.3rem; }
+    .api-box .label { flex: 1; min-width: 180px; }
+    .api-box .label strong { display: block; color: #92400e; font-size: 0.9rem; }
+    .api-box .label span   { color: #78350f; font-size: 0.8rem; }
+    .api-input-row { display: flex; gap: 8px; flex: 2; min-width: 240px; }
+    .api-input-row input {
+      flex: 1; padding: 8px 14px;
+      border: 1px solid #fcd34d; border-radius: 8px;
+      font-size: 0.85rem; outline: none;
+      background: #fff;
+    }
+    .api-input-row input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+    .btn {
+      padding: 8px 18px; border: none; border-radius: 8px;
+      font-weight: 600; font-size: 0.85rem; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .btn-save { background: linear-gradient(135deg, #f472b6, #a855f7); color: #fff; }
+    .btn-save:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-load { background: linear-gradient(135deg, #a855f7, #6366f1); color: #fff; }
+    .btn-load:hover { opacity: 0.88; transform: translateY(-1px); }
+    .api-saved { color: #065f46; font-size: 0.8rem; margin-top: 4px; display: none; }
+    .api-saved.show { display: block; }
+
+    /* ─── HOW TO GET KEY ─── */
+    .how-to {
+      max-width: 900px; margin: 0 auto; padding: 0 20px;
+    }
+    details {
+      background: #f0fdf4; border: 1px solid #bbf7d0;
+      border-radius: var(--radius-sm); padding: 12px 16px;
+      font-size: 0.82rem; color: #166534;
+    }
+    details summary { cursor: pointer; font-weight: 600; user-select: none; }
+    details ol { margin: 10px 0 0 16px; line-height: 1.8; }
+    details a { color: #6366f1; }
+
+    /* ─── TABS ─── */
+    .tabs-wrap {
+      max-width: 900px;
+      margin: 24px auto 0;
+      padding: 0 20px;
+    }
+    .tabs {
+      display: flex; gap: 8px;
+      background: var(--card);
+      border-radius: 999px;
+      padding: 6px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      width: fit-content;
+    }
+    .tab-btn {
+      padding: 10px 24px; border: none;
+      border-radius: 999px; cursor: pointer;
+      font-size: 0.9rem; font-weight: 600;
+      transition: all 0.22s;
+      background: transparent; color: var(--text-muted);
+    }
+    .tab-btn:hover { color: var(--text-sub); }
+    .tab-btn.active {
+      background: var(--tab-active);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(168,85,247,0.35);
+    }
+
+    /* ─── SECTION HEADER ─── */
+    .section {
+      max-width: 900px;
+      margin: 24px auto 0;
+      padding: 0 20px;
+      display: none;
+    }
+    .section.visible { display: block; }
+    .section-title {
+      font-size: 1.05rem; font-weight: 700;
+      color: var(--text-sub); margin-bottom: 4px;
+    }
+    .section-desc { font-size: 0.82rem; color: #9ca3af; margin-bottom: 20px; }
+
+    /* ─── CREATOR BLOCK ─── */
+    .creator-block {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+    .creator-header {
+      padding: 18px 20px;
+      display: flex; align-items: center; gap: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .creator-emoji {
+      font-size: 2rem;
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #fce7f3, #ede9fe);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .creator-meta h3 { font-size: 1rem; font-weight: 700; }
+    .creator-meta p  { font-size: 0.8rem; color: #9ca3af; margin-top: 2px; }
+    .creator-why {
+      margin-left: auto;
+      background: var(--pink-light); color: #be185d;
+      border-radius: 8px; padding: 6px 12px;
+      font-size: 0.75rem; line-height: 1.4;
+      max-width: 200px; text-align: right;
+    }
+
+    /* ─── VIDEO GRID ─── */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      padding: 20px;
+    }
+    .video-card {
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      transition: all 0.22s;
+      cursor: pointer;
+    }
+    .video-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--pink);
+    }
+    .video-thumb {
+      position: relative;
+      padding-top: 56.25%;
+      background: #f3e8ff;
+      overflow: hidden;
+    }
+    .video-thumb img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .video-thumb .play-btn {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.3);
+      opacity: 0; transition: opacity 0.18s;
+      font-size: 2.5rem;
+    }
+    .video-card:hover .play-btn { opacity: 1; }
+    .like-badge {
+      position: absolute; bottom: 8px; right: 8px;
+      background: rgba(0,0,0,0.7); color: #fff;
+      border-radius: 999px; padding: 3px 10px;
+      font-size: 0.72rem; font-weight: 600;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .date-badge {
+      position: absolute; bottom: 8px; left: 8px;
+      background: linear-gradient(135deg, #f472b6, #a855f7);
+      color: #fff; border-radius: 999px;
+      padding: 3px 10px; font-size: 0.7rem; font-weight: 600;
+    }
+    .video-info { padding: 12px; }
+    .video-title {
+      font-size: 0.82rem; font-weight: 600; color: var(--text);
+      line-height: 1.4;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .video-date { font-size: 0.72rem; color: #9ca3af; margin-top: 4px; }
+
+    /* ─── SKELETON ─── */
+    .skeleton {
+      background: linear-gradient(90deg, #f3e8ff 25%, #ede9fe 50%, #f3e8ff 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .skel-thumb { padding-top: 56.25%; }
+    .skel-line  { height: 12px; margin: 10px 12px; }
+    .skel-line.short { width: 60%; margin-bottom: 14px; }
+
+    /* ─── EMPTY / ERROR ─── */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #9ca3af;
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .empty-state p { font-size: 0.9rem; line-height: 1.6; }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      text-align: center; padding: 40px 20px 0;
+      font-size: 0.78rem; color: #c4b5fd;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 1.5rem; }
+      .creator-why { display: none; }
+      .tabs { gap: 4px; }
+      .tab-btn { padding: 8px 14px; font-size: 0.82rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<div class="hero">
+  <h1>✨ 我的风格仪表盘</h1>
+  <p>根据你的脸型与体型，精选最适合你的 YouTube 博主 · 仅展示 2026 年后最高赞视频</p>
+</div>
+
+<!-- ═══════════════ PROFILE ═══════════════ -->
+<div class="profile-wrap">
+  <div class="profile-card">
+    <div class="profile-avatar">🌸</div>
+    <div class="profile-info">
+      <h2>我的专属档案</h2>
+      <p>基于五官与体型分析，为你定制推荐内容</p>
+      <div class="tags">
+        <span class="tag">155 cm · 47 kg</span>
+        <span class="tag">娇小身材</span>
+        <span class="tag purple">鹅蛋脸 · 圆眼</span>
+        <span class="tag purple">五官精致小巧</span>
+        <span class="tag indigo">甜酷混搭风</span>
+        <span class="tag indigo">韩系 / 日系</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ API KEY ═══════════════ -->
+<div class="api-banner">
+  <div class="api-box">
+    <div class="icon">🔑</div>
+    <div class="label">
+      <strong>输入 YouTube Data API Key</strong>
+      <span>免费额度每日足够使用，Key 仅存在本地浏览器中</span>
+    </div>
+    <div class="api-input-row">
+      <input type="password" id="apiKeyInput" placeholder="AIzaSy..." />
+      <button class="btn btn-save" onclick="saveKey()">保存</button>
+      <button class="btn btn-load" onclick="loadAllData()">加载视频</button>
+    </div>
+  </div>
+  <div class="api-saved" id="savedMsg">✅ API Key 已保存，点击「加载视频」开始</div>
+</div>
+
+<!-- ═══════════════ HOW TO GET KEY ═══════════════ -->
+<div class="how-to" style="margin-top:10px;">
+  <details>
+    <summary>📖 没有 API Key？点这里查看免费获取方式（5分钟完成）</summary>
+    <ol>
+      <li>前往 <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+      <li>创建新项目（随意命名）</li>
+      <li>点击左侧「APIs &amp; Services」→「Library」</li>
+      <li>搜索 <strong>YouTube Data API v3</strong>，点击「Enable」启用</li>
+      <li>返回「APIs &amp; Services」→「Credentials」→「Create Credentials」→「API Key」</li>
+      <li>复制生成的 Key，粘贴到上方输入框并保存即可</li>
+    </ol>
+  </details>
+</div>
+
+<!-- ═══════════════ TABS ═══════════════ -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('fashion')">👗 穿搭博主</button>
+    <button class="tab-btn"        onclick="switchTab('makeup')">💄 妆容博主</button>
+    <button class="tab-btn"        onclick="switchTab('fitness')">🏃‍♀️ 运动博主</button>
+  </div>
+</div>
+
+<!-- ═══════════════ SECTION: FASHION ═══════════════ -->
+<div class="section visible" id="sec-fashion">
+  <div class="section-title">👗 穿搭博主推荐</div>
+  <div class="section-desc">专为 155cm 娇小身材 · 甜酷韩系风 精选，帮你找显高比例穿搭秘诀</div>
+  <div id="fashion-content">
+    <div class="empty-state">
+      <div class="icon">🎬</div>
+      <p>请输入 API Key 后点击「加载视频」<br/>即可看到 2026 年后点赞最高的精选内容</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SECTION: MAKEUP ═══════════════ -->
+<div class="section" id="sec-makeup">
+  <div class="section-title">💄 妆容博主推荐</div>
+  <div class="section-desc">适合鹅蛋脸 · 大圆眼 · 小巧五官的妆容技巧，韩系娃娃眼 & 精致感妆法</div>
+  <div id="makeup-content">
+    <div class="empty-state">
+      <div class="icon">🎬</div>
+      <p>请输入 API Key 后点击「加载视频」<br/>即可看到 2026 年后点赞最高的精选内容</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SECTION: FITNESS ═══════════════ -->
+<div class="section" id="sec-fitness">
+  <div class="section-title">🏃‍♀️ 运动博主推荐</div>
+  <div class="section-desc">适合娇小身材的塑形训练，提升腿部线条 & 肩颈比例，在家即可练习</div>
+  <div id="fitness-content">
+    <div class="empty-state">
+      <div class="icon">🎬</div>
+      <p>请输入 API Key 后点击「加载视频」<br/>即可看到 2026 年后点赞最高的精选内容</p>
+    </div>
+  </div>
+</div>
+
+<div class="footer">✨ 仅展示发布于 2026-01-01 之后的视频，按点赞数排序 · 数据来自 YouTube Data API v3</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   CREATOR DATABASE
+   — channel search query + emoji + why适合
+═══════════════════════════════════════════ */
+const CREATORS = {
+  fashion: [
+    {
+      name: 'Petite Dressing',
+      emoji: '👗',
+      query: 'Petite Dressing Michelle channel',
+      channelSearch: 'Petite Dressing',
+      why: '专注 155cm 以下比例穿搭，大量显高技巧',
+      desc: '娇小身材穿搭专家 · 超实用比例法则'
+    },
+    {
+      name: 'SUNNYDAHYE',
+      emoji: '🌟',
+      query: 'sunnydahye',
+      channelSearch: 'sunnydahye',
+      why: '韩裔博主，娇小甜酷风，与你气质高度契合',
+      desc: '韩系甜酷穿搭 · 娇小身材'
+    },
+    {
+      name: 'Charis Marc',
+      emoji: '🎀',
+      query: 'Charis Marc fashion',
+      channelSearch: 'Charis Marc',
+      why: '甜美混搭风，小巧五官+娃娃脸博主本人',
+      desc: '甜酷混搭 · 韩美风格'
+    },
+    {
+      name: 'bestdressed',
+      emoji: '✨',
+      query: 'bestdressed ashley fashion',
+      channelSearch: 'bestdressed',
+      why: '有个性的穿搭方式，展示如何用小个子穿出大气场',
+      desc: '个性穿搭 · 不跟风美学'
+    }
+  ],
+  makeup: [
+    {
+      name: 'PONY Syndrome',
+      emoji: '💜',
+      query: 'PONY Syndrome makeup tutorial',
+      channelSearch: 'PONY Syndrome',
+      why: '韩国顶级彩妆，圆眼放大技巧绝佳，适合你的眼型',
+      desc: '韩系经典彩妆 · 圆眼放大术'
+    },
+    {
+      name: 'Risabae',
+      emoji: '🌸',
+      query: 'Risabae makeup',
+      channelSearch: 'Risabae',
+      why: '韩国专业彩妆师，讲解细致，适合学习基础底妆',
+      desc: '专业韩系彩妆 · 底妆教学'
+    },
+    {
+      name: 'Jeniffer Chiu',
+      emoji: '🎭',
+      query: 'Jeniffer Chiu makeup',
+      channelSearch: 'Jeniffer Chiu',
+      why: '亚洲五官妆容，甜酷感氛围妆，与你气质相符',
+      desc: '亚洲甜酷妆容 · 氛围感'
+    },
+    {
+      name: 'hindash',
+      emoji: '💫',
+      query: 'hindash makeup tutorial',
+      channelSearch: 'hindash',
+      why: '技术流教学，讲解眼型改造，适合圆眼变细长或增大',
+      desc: '技术流彩妆 · 眼型改造'
+    }
+  ],
+  fitness: [
+    {
+      name: 'Chloe Ting',
+      emoji: '💪',
+      query: 'Chloe Ting workout challenge',
+      channelSearch: 'Chloe Ting',
+      why: '澳洲华裔，无器械居家训练，适合娇小身材塑形',
+      desc: '居家无器械 · 全身塑形'
+    },
+    {
+      name: 'Heather Robertson',
+      emoji: '🔥',
+      query: 'Heather Robertson fitness workout',
+      channelSearch: 'Heather Robertson',
+      why: '专注腿部&臀部线条，改善娇小身材比例必备',
+      desc: '腿臀线条 · 比例塑造'
+    },
+    {
+      name: 'MommaStrong',
+      emoji: '🌿',
+      query: 'MommaStrong workout',
+      channelSearch: 'MommaStrong',
+      why: '低冲击训练，适合日常维持，不会让身材变壮',
+      desc: '低冲击塑形 · 优雅身材线条'
+    },
+    {
+      name: 'Caroline Girvan',
+      emoji: '⚡',
+      query: 'Caroline Girvan workout',
+      channelSearch: 'Caroline Girvan',
+      why: '科学训练方法，帮助娇小身材建立紧实感与比例感',
+      desc: '科学力量训练 · 紧实塑形'
+    }
+  ]
+};
+
+const PUBLISHED_AFTER = '2026-01-01T00:00:00Z';
+const BASE = 'https://www.googleapis.com/youtube/v3';
+let API_KEY = localStorage.getItem('yt_api_key') || '';
+let dataLoaded = { fashion: false, makeup: false, fitness: false };
+let currentTab = 'fashion';
+
+/* ─── INIT ─── */
+window.addEventListener('DOMContentLoaded', () => {
+  if (API_KEY) {
+    document.getElementById('apiKeyInput').value = API_KEY;
+    document.getElementById('savedMsg').classList.add('show');
+    loadAllData();
+  }
+});
+
+/* ─── API KEY ─── */
+function saveKey() {
+  const v = document.getElementById('apiKeyInput').value.trim();
+  if (!v) return alert('请先粘贴 API Key！');
+  API_KEY = v;
+  localStorage.setItem('yt_api_key', v);
+  document.getElementById('savedMsg').classList.add('show');
+}
+
+/* ─── TABS ─── */
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['fashion','makeup','fitness'][i] === tab);
+  });
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.getElementById('sec-' + tab).classList.add('visible');
+}
+
+/* ─── LOAD ALL ─── */
+async function loadAllData() {
+  if (!API_KEY) { alert('请先保存 API Key！'); return; }
+  const tabs = ['fashion', 'makeup', 'fitness'];
+  for (const t of tabs) {
+    if (!dataLoaded[t]) {
+      showSkeletons(t + '-content', CREATORS[t].length);
+      await loadTab(t);
+      dataLoaded[t] = true;
+    }
+  }
+}
+
+/* ─── LOAD TAB ─── */
+async function loadTab(category) {
+  const container = document.getElementById(category + '-content');
+  container.innerHTML = '';
+  for (const creator of CREATORS[category]) {
+    const block = document.createElement('div');
+    block.className = 'creator-block';
+    block.innerHTML = creatorHeaderHTML(creator) +
+      `<div class="video-grid" id="grid-${slugify(creator.name)}">` +
+        skeletonCards(3) +
+      `</div>`;
+    container.appendChild(block);
+    fetchCreatorVideos(creator).then(videos => {
+      const grid = document.getElementById('grid-' + slugify(creator.name));
+      if (!videos || videos.length === 0) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+          <div class="icon">🔍</div>
+          <p>暂未找到该博主 2026 年后的视频<br/>可能该频道尚未发布新内容</p>
+        </div>`;
+      } else {
+        grid.innerHTML = videos.map(v => videoCardHTML(v)).join('');
+      }
+    });
+  }
+}
+
+/* ─── FETCH CREATOR VIDEOS ─── */
+async function fetchCreatorVideos(creator) {
+  try {
+    // Step 1: Find channel ID
+    const searchUrl = `${BASE}/search?part=snippet&type=channel&q=${encodeURIComponent(creator.channelSearch)}&maxResults=1&key=${API_KEY}`;
+    const sr = await apiFetch(searchUrl);
+    if (!sr.items || sr.items.length === 0) return [];
+    const channelId = sr.items[0].id.channelId;
+
+    // Step 2: Get recent videos (published after 2026-01-01)
+    const vidUrl = `${BASE}/search?part=snippet&channelId=${channelId}&type=video&publishedAfter=${PUBLISHED_AFTER}&maxResults=12&order=viewCount&key=${API_KEY}`;
+    const vr = await apiFetch(vidUrl);
+    if (!vr.items || vr.items.length === 0) return [];
+    const ids = vr.items.map(i => i.id.videoId).join(',');
+
+    // Step 3: Get statistics
+    const statUrl = `${BASE}/videos?part=statistics,snippet&id=${ids}&key=${API_KEY}`;
+    const st = await apiFetch(statUrl);
+    if (!st.items) return [];
+
+    // Sort by like count descending, take top 3
+    return st.items
+      .filter(v => v.statistics && v.statistics.likeCount)
+      .sort((a, b) => parseInt(b.statistics.likeCount) - parseInt(a.statistics.likeCount))
+      .slice(0, 3)
+      .map(v => ({
+        id: v.id,
+        title: v.snippet.title,
+        thumb: v.snippet.thumbnails.medium?.url || v.snippet.thumbnails.default?.url,
+        likes: parseInt(v.statistics.likeCount),
+        publishedAt: v.snippet.publishedAt
+      }));
+  } catch (e) {
+    console.error(creator.name, e);
+    return null;
+  }
+}
+
+/* ─── API FETCH ─── */
+async function apiFetch(url) {
+  const res = await fetch(url);
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || res.statusText);
+  }
+  return res.json();
+}
+
+/* ─── HTML HELPERS ─── */
+function creatorHeaderHTML(c) {
+  return `<div class="creator-header">
+    <div class="creator-emoji">${c.emoji}</div>
+    <div class="creator-meta">
+      <h3>${c.name}</h3>
+      <p>${c.desc}</p>
+    </div>
+    <div class="creator-why">${c.why}</div>
+  </div>`;
+}
+
+function videoCardHTML(v) {
+  const url = `https://www.youtube.com/watch?v=${v.id}`;
+  const date = new Date(v.publishedAt).toLocaleDateString('zh-CN', { year:'numeric', month:'short', day:'numeric' });
+  const likes = formatNum(v.likes);
+  return `<div class="video-card" onclick="window.open('${url}','_blank')">
+    <div class="video-thumb">
+      <img src="${v.thumb}" alt="${escHtml(v.title)}" loading="lazy" />
+      <div class="play-btn">▶</div>
+      <div class="like-badge">❤️ ${likes}</div>
+      <div class="date-badge">${date}</div>
+    </div>
+    <div class="video-info">
+      <div class="video-title">${escHtml(v.title)}</div>
+    </div>
+  </div>`;
+}
+
+function skeletonCards(n) {
+  return Array.from({length: n}, () =>
+    `<div class="video-card" style="pointer-events:none">
+      <div class="skeleton skel-thumb"></div>
+      <div class="skeleton skel-line"></div>
+      <div class="skeleton skel-line short"></div>
+    </div>`
+  ).join('');
+}
+
+function showSkeletons(containerId, creatorCount) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = Array.from({length: creatorCount}, (_, i) =>
+    `<div class="creator-block">
+      <div class="creator-header" style="gap:14px">
+        <div class="skeleton" style="width:52px;height:52px;border-radius:50%;flex-shrink:0"></div>
+        <div style="flex:1">
+          <div class="skeleton" style="height:14px;width:40%;margin-bottom:8px;border-radius:6px"></div>
+          <div class="skeleton" style="height:10px;width:60%;border-radius:6px"></div>
+        </div>
+      </div>
+      <div class="video-grid">${skeletonCards(3)}</div>
+    </div>`
+  ).join('');
+}
+
+function slugify(s) { return s.replace(/\s+/g, '-').toLowerCase(); }
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function formatNum(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+  return n.toString();
+}
+</script>
+</body>
+</html>
