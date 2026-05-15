@@ -352,6 +352,7 @@
       <input type="password" id="apiKeyInput" placeholder="AIzaSy..." />
       <button class="btn btn-save" onclick="saveKey()">保存</button>
       <button class="btn btn-load" onclick="loadAllData()">加载视频</button>
+      <button class="btn" style="background:#e0e7ff;color:#4338ca;" onclick="refreshData()">🔄 刷新</button>
     </div>
   </div>
   <div class="api-saved" id="savedMsg">✅ API Key 已保存，点击「加载视频」开始</div>
@@ -531,9 +532,34 @@ const CREATORS = {
 
 const PUBLISHED_AFTER = '2026-01-01T00:00:00Z';
 const BASE = 'https://www.googleapis.com/youtube/v3';
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24小时
 let API_KEY = localStorage.getItem('yt_api_key') || '';
 let dataLoaded = { fashion: false, makeup: false, fitness: false };
 let currentTab = 'fashion';
+
+/* ─── CACHE ─── */
+function cacheGet(key) {
+  try {
+    const raw = localStorage.getItem('ytc_' + key);
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    if (Date.now() - ts > CACHE_TTL) { localStorage.removeItem('ytc_' + key); return null; }
+    return data;
+  } catch { return null; }
+}
+function cacheSet(key, data) {
+  try { localStorage.setItem('ytc_' + key, JSON.stringify({ data, ts: Date.now() })); } catch {}
+}
+function cacheClear() {
+  Object.keys(localStorage).filter(k => k.startsWith('ytc_')).forEach(k => localStorage.removeItem(k));
+}
+function cacheAge() {
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('ytc_'));
+  if (!keys.length) return null;
+  const ts = JSON.parse(localStorage.getItem(keys[0])).ts;
+  const mins = Math.round((Date.now() - ts) / 60000);
+  return mins < 60 ? `${mins} 分钟前` : `${Math.round(mins/60)} 小时前`;
+}
 
 /* ─── INIT ─── */
 window.addEventListener('DOMContentLoaded', () => {
@@ -574,6 +600,16 @@ async function loadAllData() {
       dataLoaded[t] = true;
     }
   }
+  const age = cacheAge();
+  if (age) document.getElementById('savedMsg').textContent = `✅ API Key 已保存 · 数据缓存于 ${age}`;
+}
+
+/* ─── REFRESH ─── */
+async function refreshData() {
+  cacheClear();
+  dataLoaded = { fashion: false, makeup: false, fitness: false };
+  document.getElementById('savedMsg').textContent = '🔄 正在获取最新数据...';
+  await loadAllData();
 }
 
 /* ─── LOAD TAB ─── */
@@ -604,26 +640,33 @@ async function loadTab(category) {
 
 /* ─── FETCH CREATOR VIDEOS ─── */
 async function fetchCreatorVideos(creator) {
-  try {
-    // Step 1: Find channel ID
-    const searchUrl = `${BASE}/search?part=snippet&type=channel&q=${encodeURIComponent(creator.channelSearch)}&maxResults=1&key=${API_KEY}`;
-    const sr = await apiFetch(searchUrl);
-    if (!sr.items || sr.items.length === 0) return [];
-    const channelId = sr.items[0].id.channelId;
+  const cacheKey = slugify(creator.name);
+  const cached = cacheGet(cacheKey);
+  if (cached) return cached;
 
-    // Step 2: Get recent videos (published after 2026-01-01)
+  try {
+    // Step 1: Find channel ID (also cached separately)
+    let channelId = cacheGet('ch_' + cacheKey);
+    if (!channelId) {
+      const searchUrl = `${BASE}/search?part=snippet&type=channel&q=${encodeURIComponent(creator.channelSearch)}&maxResults=1&key=${API_KEY}`;
+      const sr = await apiFetch(searchUrl);
+      if (!sr.items || sr.items.length === 0) return [];
+      channelId = sr.items[0].id.channelId;
+      cacheSet('ch_' + cacheKey, channelId);
+    }
+
+    // Step 2: Get recent videos
     const vidUrl = `${BASE}/search?part=snippet&channelId=${channelId}&type=video&publishedAfter=${PUBLISHED_AFTER}&maxResults=12&order=viewCount&key=${API_KEY}`;
     const vr = await apiFetch(vidUrl);
-    if (!vr.items || vr.items.length === 0) return [];
+    if (!vr.items || vr.items.length === 0) { cacheSet(cacheKey, []); return []; }
     const ids = vr.items.map(i => i.id.videoId).join(',');
 
     // Step 3: Get statistics
     const statUrl = `${BASE}/videos?part=statistics,snippet&id=${ids}&key=${API_KEY}`;
     const st = await apiFetch(statUrl);
-    if (!st.items) return [];
+    if (!st.items) { cacheSet(cacheKey, []); return []; }
 
-    // Sort by like count descending, take top 3
-    return st.items
+    const result = st.items
       .filter(v => v.statistics && v.statistics.likeCount)
       .sort((a, b) => parseInt(b.statistics.likeCount) - parseInt(a.statistics.likeCount))
       .slice(0, 3)
@@ -634,6 +677,9 @@ async function fetchCreatorVideos(creator) {
         likes: parseInt(v.statistics.likeCount),
         publishedAt: v.snippet.publishedAt
       }));
+
+    cacheSet(cacheKey, result);
+    return result;
   } catch (e) {
     console.error(creator.name, e);
     return null;
