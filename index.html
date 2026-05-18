@@ -712,7 +712,7 @@ function videoCardHTML(v) {
   const url = `https://www.youtube.com/watch?v=${v.id}`;
   const date = new Date(v.publishedAt).toLocaleDateString('zh-CN', { year:'numeric', month:'short', day:'numeric' });
   const likes = formatNum(v.likes);
-  return `<div class="video-card" onclick="window.open('${url}','_blank')">
+  return `<a class="video-card" href="${url}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:block;">
     <div class="video-thumb">
       <img src="${v.thumb}" alt="${escHtml(v.title)}" loading="lazy" />
       <div class="play-btn">▶</div>
@@ -722,7 +722,7 @@ function videoCardHTML(v) {
     <div class="video-info">
       <div class="video-title">${escHtml(v.title)}</div>
     </div>
-  </div>`;
+  </a>`;
 }
 
 function skeletonCards(n) {
